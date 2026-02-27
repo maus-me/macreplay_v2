@@ -73,7 +73,8 @@ basePath = os.path.abspath(os.getcwd())
 if os.getenv("HOST"):
     host = os.getenv("HOST")
 else:
-    host = "ubuntu.verbergwest.appboxes.co:13681"
+    host = "0.0.0.0:8001"
+
 logger.info(f"Server started on http://{host}")
 
 try:
@@ -156,6 +157,7 @@ defaultSettings = {
     "hdhr name": "MacReplayV2",
     "hdhr id": str(uuid.uuid4().hex),
     "hdhr tuners": "10",
+    "all channels enabled by default": "true",
 }
 
 defaultPortal = {
@@ -482,6 +484,12 @@ def editor_data():
                     genres = None
 
             if allChannels and genres:
+                # Automatically enable all channels if the setting is on and no channels are enabled yet
+                if getSettings().get("all channels enabled by default", "true") == "true":
+                    enabledChannels = [str(channel["id"]) for channel in allChannels]
+                    portals[portal]["enabled channels"] = enabledChannels
+                    savePortals(portals)
+
                 for channel in allChannels:
                     channelId = str(channel["id"])
                     channelName = str(channel["name"])
@@ -564,11 +572,13 @@ def editorSave():
         enabled = edit["enabled"]
         if enabled:
             portals[portal].setdefault("enabled channels", [])
-            portals[portal]["enabled channels"].append(channelId)
+            if channelId not in portals[portal]["enabled channels"]:
+                portals[portal]["enabled channels"].append(channelId)
         else:
-            portals[portal]["enabled channels"] = list(
-                filter((channelId).__ne__, portals[portal]["enabled channels"])
-            )
+            if channelId in portals[portal].get("enabled channels", []):
+                portals[portal]["enabled channels"] = list(
+                    filter((channelId).__ne__, portals[portal]["enabled channels"])
+                )
 
     for edit in numberEdits:
         portal = edit["portal"]
@@ -728,6 +738,12 @@ def generate_playlist():
                         genres = None
 
                 if allChannels and genres:
+                    # Automatically enable all channels if the setting is on and no channels are enabled yet
+                    if getSettings().get("all channels enabled by default", "true") == "true":
+                        enabledChannels = [str(channel.get("id")) for channel in allChannels]
+                        portals[portal]["enabled channels"] = enabledChannels
+                        savePortals(portals)
+
                     for channel in allChannels:
                         channelId = str(channel.get("id"))
                         if channelId in enabledChannels:

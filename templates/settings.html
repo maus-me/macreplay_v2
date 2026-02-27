@@ -104,6 +104,17 @@
                             Sort playlist by channel name
                         </label>
                     </div>
+                    
+                    <div class="form-check mb-3 border-top pt-3">
+                        <input class="form-check-input" type="checkbox" id="all_channels_enabled_by_default" name="all channels enabled by default" 
+                               value="true" {{ 'checked' if settings['all channels enabled by default'] == 'true' }}>
+                        <label class="form-check-label" for="all_channels_enabled_by_default">
+                            Enable all channels by default
+                        </label>
+                        <div class="form-text">
+                            If checked, all channels will be enabled and added to the list by default.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
